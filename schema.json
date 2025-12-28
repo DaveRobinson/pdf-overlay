@@ -1,0 +1,213 @@
+{
+  "$ref": "#/definitions/DocumentRules",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "DocumentMeta": {
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "DocumentRules": {
+      "additionalProperties": false,
+      "properties": {
+        "documentMeta": {
+          "$ref": "#/definitions/DocumentMeta"
+        },
+        "processingRules": {
+          "items": {
+            "$ref": "#/definitions/ProcessingRule"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "documentMeta",
+        "processingRules"
+      ],
+      "type": "object"
+    },
+    "ImageElement": {
+      "additionalProperties": false,
+      "properties": {
+        "height": {
+          "type": "number"
+        },
+        "path": {
+          "type": "string"
+        },
+        "width": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "type": "object"
+    },
+    "PageSelector": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "all",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "pages": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "type": {
+              "const": "specific",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "pages"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "first",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "last",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "from": {
+              "type": "number"
+            },
+            "to": {
+              "type": "number"
+            },
+            "type": {
+              "const": "range",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "from",
+            "to"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "PositionSelector": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "type": "object"
+    },
+    "ProcessingRule": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "element": {
+              "$ref": "#/definitions/TextElement"
+            },
+            "page": {
+              "$ref": "#/definitions/PageSelector"
+            },
+            "position": {
+              "$ref": "#/definitions/PositionSelector"
+            },
+            "type": {
+              "const": "text",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "position",
+            "element",
+            "page"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "element": {
+              "$ref": "#/definitions/ImageElement"
+            },
+            "page": {
+              "$ref": "#/definitions/PageSelector"
+            },
+            "position": {
+              "$ref": "#/definitions/PositionSelector"
+            },
+            "type": {
+              "const": "image",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "position",
+            "element",
+            "page"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "TextElement": {
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "content"
+      ],
+      "type": "object"
+    }
+  }
+}
