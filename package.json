@@ -15,7 +15,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "generate-schema": "ts-json-schema-generator --path 'src/types.ts' --type 'DocumentRules' --out schema.json"
+    "generate-schema": "ts-json-schema-generator --path 'src/types.ts' --type 'DocumentRules' --out schema.json",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

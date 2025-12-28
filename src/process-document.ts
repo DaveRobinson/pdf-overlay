@@ -1,12 +1,16 @@
-import { PDFDocument, PDFPage, PDFImage } from 'pdf-lib'
+import { PDFDocument, PDFPage, PDFImage, PDFFont, StandardFonts } from 'pdf-lib'
 import { readFile, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
-import type { DocumentRules, ProcessingRule } from './types'
+import type { DocumentRules, ProcessingRule, DefaultTextStyle } from './types'
+import { parseColour } from './colour-utils'
+import { resolvePageNumbers } from './page-utils'
 
-type ProcessingPlan = {
+export type ProcessingPlan = {
   pageRules: Map<number, ProcessingRule[]>
   embeddedImages: Map<string, PDFImage>
+  embeddedFonts: Map<string, PDFFont>
+  defaults: DefaultTextStyle
 }
 
 /**
@@ -41,7 +45,7 @@ export async function processDocument(
  * Apply all processing rules to the PDF document
  */
 async function applyRules(pdfDoc: PDFDocument, rules: DocumentRules): Promise<void> {
-  // Create a plan grouping rules by page index and pre-embed images
+  // Create a plan grouping rules by page index and pre-embed images/fonts
   const plan = await createProcessingPlan(pdfDoc, rules)
 
   // Loop over the map
@@ -49,7 +53,7 @@ async function applyRules(pdfDoc: PDFDocument, rules: DocumentRules): Promise<vo
     const page = pdfDoc.getPage(pageIndex)
     for (const rule of pageRules) {
       if (rule.type === 'text') {
-        applyTextElement(page, rule)
+        applyTextElement(page, rule, plan)
       }
       if (rule.type === 'image') {
         applyImageElement(page, rule, plan.embeddedImages)
@@ -59,16 +63,33 @@ async function applyRules(pdfDoc: PDFDocument, rules: DocumentRules): Promise<vo
 }
 
 /**
- * Create a processing plan that groups rules by page index and pre-embeds images
- * @returns Processing plan with page rules and embedded images
+ * Create a processing plan that groups rules by page index and pre-embeds images and fonts
+ * @returns Processing plan with page rules, embedded images, embedded fonts, and defaults
+ * @internal - Exported for testing purposes
  */
-async function createProcessingPlan(
+export async function createProcessingPlan(
   pdfDoc: PDFDocument,
   rules: DocumentRules
 ): Promise<ProcessingPlan> {
   const pageRules = new Map<number, ProcessingRule[]>()
   const embeddedImages = new Map<string, PDFImage>()
+  const embeddedFonts = new Map<string, PDFFont>()
   const pageCount = pdfDoc.getPageCount()
+  const defaults = rules.documentMeta.defaults ?? {}
+
+  // Pre-embed fonts from DocumentMeta
+  if (rules.documentMeta.fonts) {
+    for (const [fontName, fontDef] of Object.entries(rules.documentMeta.fonts)) {
+      if (fontDef.type === 'standard') {
+        const font = await pdfDoc.embedFont(fontDef.name as StandardFonts)
+        embeddedFonts.set(fontName, font)
+      } else if (fontDef.type === 'custom') {
+        const fontBytes = await readFile(fontDef.path)
+        const font = await pdfDoc.embedFont(fontBytes)
+        embeddedFonts.set(fontName, font)
+      }
+    }
+  }
 
   // Collect unique image paths
   const imagePaths = new Set<string>()
@@ -108,46 +129,7 @@ async function createProcessingPlan(
     }
   }
 
-  return { pageRules, embeddedImages }
-}
-
-/**
- * Resolve a PageSelector to actual page numbers
- * Supports negative numbers to count backwards from the end (e.g., -1 = last page, -2 = second-to-last)
- * @returns Array of page numbers (1-based)
- */
-function resolvePageNumbers(selector: PageSelector, pageCount: number): number[] {
-  switch (selector.type) {
-    case 'all':
-      return Array.from({ length: pageCount }, (_, i) => i + 1)
-    case 'specific':
-      return selector.pages.map(p => normalizePageNumber(p, pageCount))
-    case 'first':
-      return [1]
-    case 'last':
-      return [pageCount]
-    case 'range': {
-      const from = normalizePageNumber(selector.from, pageCount)
-      const to = normalizePageNumber(selector.to, pageCount)
-      return Array.from(
-        { length: to - from + 1 },
-        (_, i) => from + i
-      )
-    }
-  }
-}
-
-/**
- * Normalize a page number, converting negative numbers to count from the end
- * @param pageNum - Page number (1-based or negative)
- * @param pageCount - Total number of pages
- * @returns Normalized page number (1-based)
- */
-function normalizePageNumber(pageNum: number, pageCount: number): number {
-  if (pageNum < 0) {
-    return pageCount + pageNum + 1
-  }
-  return pageNum
+  return { pageRules, embeddedImages, embeddedFonts, defaults }
 }
 
 /**
@@ -164,11 +146,29 @@ function generateTempPath(): string {
  */
 function applyTextElement(
   page: PDFPage,
-  rule: Extract<ProcessingRule, { type: 'text' }>
+  rule: Extract<ProcessingRule, { type: 'text' }>,
+  plan: ProcessingPlan
 ): void {
-  page.drawText(rule.element.content, {
+  const element = rule.element
+
+  // Resolve font (element > defaults)
+  const fontName = element.fontName ?? plan.defaults.fontName
+  const font = fontName ? plan.embeddedFonts.get(fontName) : undefined
+
+  // Resolve other styling options with fallbacks to defaults
+  const fontSize = element.fontSize ?? plan.defaults.fontSize
+  const colourSpec = element.colour ?? plan.defaults.colour
+  const colour = colourSpec ? parseColour(colourSpec) : undefined
+  const lineHeight = element.lineHeight ?? plan.defaults.lineHeight
+
+  page.drawText(element.content, {
     x: rule.position.x,
-    y: rule.position.y
+    y: rule.position.y,
+    font,
+    size: fontSize,
+    color: colour,
+    lineHeight,
+    opacity: element.opacity,
   })
 }
 

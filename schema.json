@@ -2,8 +2,115 @@
   "$ref": "#/definitions/DocumentRules",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
+    "ColourSpec": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "b": {
+              "type": "number"
+            },
+            "g": {
+              "type": "number"
+            },
+            "r": {
+              "type": "number"
+            },
+            "type": {
+              "const": "rgb",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "r",
+            "g",
+            "b"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "c": {
+              "type": "number"
+            },
+            "k": {
+              "type": "number"
+            },
+            "m": {
+              "type": "number"
+            },
+            "type": {
+              "const": "cmyk",
+              "type": "string"
+            },
+            "y": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "c",
+            "m",
+            "y",
+            "k"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "grey": {
+              "type": "number"
+            },
+            "type": {
+              "const": "grey",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "grey"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "DefaultTextStyle": {
+      "additionalProperties": false,
+      "properties": {
+        "colour": {
+          "$ref": "#/definitions/ColourSpec"
+        },
+        "fontName": {
+          "type": "string"
+        },
+        "fontSize": {
+          "type": "number"
+        },
+        "lineHeight": {
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
     "DocumentMeta": {
       "additionalProperties": false,
+      "properties": {
+        "defaults": {
+          "$ref": "#/definitions/DefaultTextStyle"
+        },
+        "fonts": {
+          "additionalProperties": {
+            "$ref": "#/definitions/FontDefinition"
+          },
+          "type": "object"
+        }
+      },
       "type": "object"
     },
     "DocumentRules": {
@@ -24,6 +131,44 @@
         "processingRules"
       ],
       "type": "object"
+    },
+    "FontDefinition": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "type": {
+              "const": "standard",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "name"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "type": {
+              "const": "custom",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "path"
+          ],
+          "type": "object"
+        }
+      ]
     },
     "ImageElement": {
       "additionalProperties": false,
@@ -200,8 +345,23 @@
     "TextElement": {
       "additionalProperties": false,
       "properties": {
+        "colour": {
+          "$ref": "#/definitions/ColourSpec"
+        },
         "content": {
           "type": "string"
+        },
+        "fontName": {
+          "type": "string"
+        },
+        "fontSize": {
+          "type": "number"
+        },
+        "lineHeight": {
+          "type": "number"
+        },
+        "opacity": {
+          "type": "number"
         }
       },
       "required": [

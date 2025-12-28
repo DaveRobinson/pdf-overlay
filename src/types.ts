@@ -2,7 +2,27 @@ export type DocumentRules = {
     documentMeta: DocumentMeta
     processingRules: ProcessingRule[]
 }
-export type DocumentMeta = {}
+export type DocumentMeta = {
+  fonts?: Record<string, FontDefinition>
+  defaults?: DefaultTextStyle
+}
+
+export type FontDefinition =
+  | { type: 'standard'; name: string }
+  | { type: 'custom'; path: string }
+
+export type DefaultTextStyle = {
+  fontName?: string
+  fontSize?: number
+  colour?: ColourSpec
+  lineHeight?: number
+}
+
+export type ColourSpec =
+  | string  // hex "#FF0000" or "#F00"
+  | { type: 'rgb'; r: number; g: number; b: number }
+  | { type: 'cmyk'; c: number; m: number; y: number; k: number }
+  | { type: 'grey'; grey: number }
 
 export type ProcessingRule =
   | {
@@ -23,7 +43,12 @@ export type PositionSelector = {
     y: number
 }
 export type TextElement = {
-    content: string
+  content: string
+  fontName?: string       // References a key in DocumentMeta.fonts
+  fontSize?: number
+  colour?: ColourSpec
+  lineHeight?: number
+  opacity?: number        // 0-1
 }
 export type ImageElement = {
     path: string
