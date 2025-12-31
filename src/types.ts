@@ -16,6 +16,8 @@ export type DefaultTextStyle = {
   fontSize?: number
   colour?: ColourSpec
   lineHeight?: number
+  align?: HorizontalAlign
+  verticalAlign?: VerticalAlign
 }
 
 export type ColourSpec =
@@ -23,6 +25,14 @@ export type ColourSpec =
   | { type: 'rgb'; r: number; g: number; b: number }
   | { type: 'cmyk'; c: number; m: number; y: number; k: number }
   | { type: 'grey'; grey: number }
+
+export type BoundsSpec = {
+  width?: number
+  height?: number
+}
+
+export type HorizontalAlign = 'left' | 'center' | 'right'
+export type VerticalAlign = 'top' | 'middle' | 'bottom'
 
 export type ProcessingRule =
   | {
@@ -51,6 +61,9 @@ export type TextElement = {
   colour?: ColourSpec
   lineHeight?: number
   opacity?: number        // 0-1
+  bounds?: BoundsSpec
+  align?: HorizontalAlign
+  verticalAlign?: VerticalAlign
 }
 export type ImageElement = {
     path: string

@@ -5,6 +5,7 @@ import { join } from 'path'
 import type { DocumentRules, ProcessingRule, DefaultTextStyle } from './types'
 import { parseColour } from './colour-utils'
 import { resolvePageNumbers } from './page-utils'
+import { calculateAlignedX, calculateAlignedY } from './text-layout-utils'
 
 export type ProcessingPlan = {
   pageRules: Map<number, ProcessingRule[]>
@@ -155,21 +156,57 @@ function applyTextElement(
   const fontName = element.fontName ?? plan.defaults.fontName
   const font = fontName ? plan.embeddedFonts.get(fontName) : undefined
 
-  // Resolve other styling options with fallbacks to defaults
-  const fontSize = element.fontSize ?? plan.defaults.fontSize
+  // Resolve styling options with fallbacks to defaults
+  const fontSize = element.fontSize ?? plan.defaults.fontSize ?? 12
   const colourSpec = element.colour ?? plan.defaults.colour
   const colour = colourSpec ? parseColour(colourSpec) : undefined
   const lineHeight = element.lineHeight ?? plan.defaults.lineHeight
+  const align = element.align ?? plan.defaults.align
+  const verticalAlign = element.verticalAlign ?? plan.defaults.verticalAlign
 
-  page.drawText(element.content, {
-    x: rule.position.x,
-    y: rule.position.y,
+  // Calculate position based on alignment
+  // If no font is available, fall back to simple positioning
+  let x = rule.position.x
+  let y = rule.position.y
+
+  if (font) {
+    x = calculateAlignedX(
+      rule.position.x,
+      element.content,
+      font,
+      fontSize,
+      align,
+      element.bounds
+    )
+
+    y = calculateAlignedY(
+      rule.position.y,
+      element.content,
+      font,
+      fontSize,
+      verticalAlign,
+      element.bounds,
+      lineHeight
+    )
+  }
+
+  // Build draw options
+  const drawOptions: any = {
+    x,
+    y,
     font,
     size: fontSize,
     color: colour,
     lineHeight,
     opacity: element.opacity,
-  })
+  }
+
+  // Add maxWidth if bounds.width is specified
+  if (element.bounds?.width) {
+    drawOptions.maxWidth = element.bounds.width
+  }
+
+  page.drawText(element.content, drawOptions)
 }
 
 /**

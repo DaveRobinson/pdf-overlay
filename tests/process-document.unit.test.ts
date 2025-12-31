@@ -284,4 +284,141 @@ describe('createProcessingPlan', () => {
       }
     })
   })
+
+  describe('alignment defaults and cascading', () => {
+    it('should extract alignment defaults', async () => {
+      const rules: DocumentRules = {
+        documentMeta: {
+          defaults: {
+            align: 'center',
+            verticalAlign: 'middle',
+          },
+        },
+        processingRules: [],
+      }
+
+      const plan = await createProcessingPlan(pdfDoc, rules)
+
+      expect(plan.defaults).toEqual({
+        align: 'center',
+        verticalAlign: 'middle',
+      })
+    })
+
+    it('should include alignment with other defaults', async () => {
+      const rules: DocumentRules = {
+        documentMeta: {
+          defaults: {
+            fontName: 'body',
+            fontSize: 12,
+            colour: '#000000',
+            lineHeight: 14,
+            align: 'right',
+            verticalAlign: 'bottom',
+          },
+        },
+        processingRules: [],
+      }
+
+      const plan = await createProcessingPlan(pdfDoc, rules)
+
+      expect(plan.defaults).toEqual({
+        fontName: 'body',
+        fontSize: 12,
+        colour: '#000000',
+        lineHeight: 14,
+        align: 'right',
+        verticalAlign: 'bottom',
+      })
+    })
+
+    it('should preserve element-specific alignment properties', async () => {
+      const rules: DocumentRules = {
+        documentMeta: {},
+        processingRules: [
+          {
+            type: 'text',
+            position: { x: 100, y: 200 },
+            element: {
+              content: 'Aligned text',
+              align: 'center',
+              verticalAlign: 'middle',
+            },
+            page: { type: 'first' },
+          },
+        ],
+      }
+
+      const plan = await createProcessingPlan(pdfDoc, rules)
+
+      const rule = plan.pageRules.get(0)?.[0]
+      expect(rule?.type).toBe('text')
+      if (rule?.type === 'text') {
+        expect(rule.element.align).toBe('center')
+        expect(rule.element.verticalAlign).toBe('middle')
+      }
+    })
+
+    it('should preserve bounds property on elements', async () => {
+      const rules: DocumentRules = {
+        documentMeta: {},
+        processingRules: [
+          {
+            type: 'text',
+            position: { x: 50, y: 50 },
+            element: {
+              content: 'Bounded text',
+              bounds: { width: 200, height: 100 },
+            },
+            page: { type: 'first' },
+          },
+        ],
+      }
+
+      const plan = await createProcessingPlan(pdfDoc, rules)
+
+      const rule = plan.pageRules.get(0)?.[0]
+      expect(rule?.type).toBe('text')
+      if (rule?.type === 'text') {
+        expect(rule.element.bounds).toEqual({ width: 200, height: 100 })
+      }
+    })
+
+    it('should handle all alignment properties together', async () => {
+      const rules: DocumentRules = {
+        documentMeta: {
+          defaults: {
+            align: 'left',
+            verticalAlign: 'top',
+          },
+        },
+        processingRules: [
+          {
+            type: 'text',
+            position: { x: 100, y: 200 },
+            element: {
+              content: 'Fully aligned',
+              align: 'right',
+              verticalAlign: 'bottom',
+              bounds: { width: 300, height: 150 },
+            },
+            page: { type: 'first' },
+          },
+        ],
+      }
+
+      const plan = await createProcessingPlan(pdfDoc, rules)
+
+      expect(plan.defaults.align).toBe('left')
+      expect(plan.defaults.verticalAlign).toBe('top')
+
+      const rule = plan.pageRules.get(0)?.[0]
+      expect(rule?.type).toBe('text')
+      if (rule?.type === 'text') {
+        expect(rule.element.align).toBe('right')
+        expect(rule.element.verticalAlign).toBe('bottom')
+        expect(rule.element.bounds).toEqual({ width: 300, height: 150 })
+      }
+    })
+  })
 })

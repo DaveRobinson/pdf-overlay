@@ -48,11 +48,13 @@ The DocumentRules structure has two main sections:
 - PageSelectors support negative indexing (-1 = last page, -2 = second-to-last)
 - Styling cascades: element-specific → documentMeta.defaults → undefined
 - ColourSpec supports multiple formats: hex strings, RGB, CMYK, greyscale
+- All dimensions (bounds, positions) are in PDF points (1/72 inch)
 
 ### Utility Modules
 
 - `page-utils.ts`: Handles PageSelector resolution and negative page number normalization
 - `colour-utils.ts`: Converts ColourSpec types to pdf-lib Color objects
+- `text-layout-utils.ts`: Text measurement and alignment position calculations using pdf-lib font metrics
 
 ### Build Configuration
 
@@ -64,7 +66,22 @@ Vite is configured for library mode (vite.config.ts):
 ## Testing Strategy
 
 Tests are located in the `tests/` directory. The test suite focuses on:
-- Unit testing utility functions (page-utils, colour-utils)
+- Unit testing utility functions (page-utils, colour-utils, text-layout-utils)
 - Unit testing the planning phase in isolation (process-document.unit.test.ts)
 
 When testing the createProcessingPlan function, note that it's exported with `@internal` comment for testing purposes only.
+
+## Current Features
+
+### Text Overlays
+- **Styling**: Font selection (standard + custom fonts), fontSize, colour (hex/RGB/CMYK/grey), lineHeight, opacity
+- **Layout & Alignment** (Phase 2):
+  - Horizontal alignment: left/center/right (with or without bounds)
+  - Vertical alignment: top/middle/bottom (with or without bounds)
+  - Bounding boxes: Text wrapping via bounds.width, bounds.height for alignment calculations
+  - Position calculation using pdf-lib font metrics (widthOfTextAtSize, heightAtSize)
+- **Cascading defaults**: All styling and alignment properties support element → defaults cascade
+
+### Image Overlays
+- Basic image placement with position and optional width/height
+- Pre-embedding of images (PNG/JPG)
