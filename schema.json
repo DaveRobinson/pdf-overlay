@@ -296,6 +296,9 @@
             "element": {
               "$ref": "#/definitions/TextElement"
             },
+            "label": {
+              "type": "string"
+            },
             "page": {
               "$ref": "#/definitions/PageSelector"
             },
@@ -320,6 +323,9 @@
           "properties": {
             "element": {
               "$ref": "#/definitions/ImageElement"
+            },
+            "label": {
+              "type": "string"
             },
             "page": {
               "$ref": "#/definitions/PageSelector"

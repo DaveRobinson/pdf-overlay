@@ -27,12 +27,14 @@ export type ColourSpec =
 export type ProcessingRule =
   | {
       type: 'text'
+      label?: string
       position: PositionSelector
       element: TextElement
       page: PageSelector
     }
   | {
       type: 'image'
+      label?: string
       position: PositionSelector
       element: ImageElement
       page: PageSelector
