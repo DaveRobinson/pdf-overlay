@@ -21,6 +21,7 @@ async function testTextStyling() {
       // Test 1: Default styling
       {
         type: 'text',
+        label: 'Test 1: Default styling',
         position: { x: 50, y: 750 },
         element: {
           content: 'Test 1: Default styling (Helvetica 12pt black)',
@@ -31,6 +32,7 @@ async function testTextStyling() {
       // Test 2: Font override
       {
         type: 'text',
+        label: 'Test 2: Bold font override',
         position: { x: 50, y: 720 },
         element: {
           content: 'Test 2: Bold font override',
@@ -42,6 +44,7 @@ async function testTextStyling() {
       // Test 3: Hex colour (shorthand)
       {
         type: 'text',
+        label: 'Test 3: Hex colour shorthand',
         position: { x: 50, y: 690 },
         element: {
           content: 'Test 3: Hex colour shorthand (#F00 = red)',
@@ -53,6 +56,7 @@ async function testTextStyling() {
       // Test 4: Hex colour (full)
       {
         type: 'text',
+        label: 'Test 4: Hex colour full',
         position: { x: 50, y: 660 },
         element: {
           content: 'Test 4: Hex colour full (#0000FF = blue)',
@@ -64,6 +68,7 @@ async function testTextStyling() {
       // Test 5: RGB colour object
       {
         type: 'text',
+        label: 'Test 5: RGB object',
         position: { x: 50, y: 630 },
         element: {
           content: 'Test 5: RGB object (green)',
@@ -75,6 +80,7 @@ async function testTextStyling() {
       // Test 6: Grey colour
       {
         type: 'text',
+        label: 'Test 6: Grey colour',
         position: { x: 50, y: 600 },
         element: {
           content: 'Test 6: Grey colour (0.5 = medium grey)',
@@ -86,6 +92,7 @@ async function testTextStyling() {
       // Test 7: Font size override
       {
         type: 'text',
+        label: 'Test 7: Large font size',
         position: { x: 50, y: 560 },
         element: {
           content: 'Test 7: Large font size (24pt)',
@@ -97,6 +104,7 @@ async function testTextStyling() {
       // Test 8: Multiple overrides
       {
         type: 'text',
+        label: 'Test 8: Multiple overrides',
         position: { x: 50, y: 520 },
         element: {
           content: 'Test 8: Bold + large + purple',
@@ -110,6 +118,7 @@ async function testTextStyling() {
       // Test 9: Opacity
       {
         type: 'text',
+        label: 'Test 9: Opacity',
         position: { x: 50, y: 490 },
         element: {
           content: 'Test 9: Opacity 0.5 (semi-transparent)',
@@ -121,6 +130,7 @@ async function testTextStyling() {
       // Test 10: Line height with multiline text
       {
         type: 'text',
+        label: 'Test 10: Line height',
         position: { x: 50, y: 450 },
         element: {
           content: 'Test 10: Line height 20\nSecond line\nThird line',
@@ -132,6 +142,7 @@ async function testTextStyling() {
       // Test 11: Monospace font
       {
         type: 'text',
+        label: 'Test 11: Monospace font',
         position: { x: 50, y: 360 },
         element: {
           content: 'Test 11: Monospace font (Courier)\ncode = "example"',
@@ -144,6 +155,7 @@ async function testTextStyling() {
       // Test 12: CMYK colour (for print)
       {
         type: 'text',
+        label: 'Test 12: CMYK colour',
         position: { x: 50, y: 320 },
         element: {
           content: 'Test 12: CMYK colour (cyan)',

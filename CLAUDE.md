@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-pdf-overlay is a TypeScript library for adding overlays (text, images) to PDF files using a declarative rules-based system. Built on pdf-lib, it's distributed as both ESM and UMD bundles.
+pdf-overlay is a TypeScript library for placing content (text, images) on PDF files using a declarative rules-based system. Built on pdf-lib, it's distributed as both ESM and UMD bundles.
 
 ## Commands
 
@@ -41,7 +41,7 @@ This architecture prevents duplicate embedding of fonts/images and simplifies pe
 The DocumentRules structure has two main sections:
 
 - `documentMeta`: Global configuration including font definitions and default text styling
-- `processingRules`: Array of rules to apply (text or image overlays)
+- `processingRules`: Array of rules to apply (text or image placement)
 
 **Key Design Patterns:**
 - Font definitions are named references (e.g., 'body', 'heading') that get resolved during planning
@@ -73,15 +73,30 @@ When testing the createProcessingPlan function, note that it's exported with `@i
 
 ## Current Features
 
-### Text Overlays
+### Text Placement
 - **Styling**: Font selection (standard + custom fonts), fontSize, colour (hex/RGB/CMYK/grey), lineHeight, opacity
-- **Layout & Alignment** (Phase 2):
+- **Layout & Alignment**:
   - Horizontal alignment: left/center/right (with or without bounds)
   - Vertical alignment: top/middle/bottom (with or without bounds)
   - Bounding boxes: Text wrapping via bounds.width, bounds.height for alignment calculations
   - Position calculation using pdf-lib font metrics (widthOfTextAtSize, heightAtSize)
 - **Cascading defaults**: All styling and alignment properties support element → defaults cascade
 
-### Image Overlays
+### Image Placement
 - Basic image placement with position and optional width/height
 - Pre-embedding of images (PNG/JPG)
+
+## Unsupported pdf-lib Features
+
+The library intentionally does not implement the following pdf-lib capabilities:
+
+- **Interactive forms**: Text fields, checkboxes, radio buttons, dropdowns, signatures
+- **Drawing primitives**: Rectangles, circles, lines, shapes, SVG paths
+- **Page manipulation**: Adding/removing/rotating pages, merging PDFs
+- **Document metadata**: Title, author, subject, keywords
+- **Security**: Encryption and password protection
+- **Document structure**: Attachments, bookmarks
+- **Transformations**: Text rotation, coordinate transformations
+- **Viewer settings**: Viewer preferences and display settings
+
+These features are not needed for the library's core use case of placing text and images on existing PDFs.

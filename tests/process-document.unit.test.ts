@@ -19,15 +19,29 @@ describe('createProcessingPlan', () => {
   })
 
   describe('font embedding', () => {
-    it('should embed standard fonts', async () => {
+    it('should only embed fonts that are used in text rules', async () => {
       const rules: DocumentRules = {
         documentMeta: {
           fonts: {
             body: { type: 'standard', name: StandardFonts.Helvetica },
             bold: { type: 'standard', name: StandardFonts.HelveticaBold },
+            unused: { type: 'standard', name: StandardFonts.Courier },
           },
         },
-        processingRules: [],
+        processingRules: [
+          {
+            type: 'text',
+            position: { x: 0, y: 0 },
+            element: { content: 'Body text', fontName: 'body' },
+            page: { type: 'first' },
+          },
+          {
+            type: 'text',
+            position: { x: 0, y: 50 },
+            element: { content: 'Bold text', fontName: 'bold' },
+            page: { type: 'first' },
+          },
+        ],
       }
 
       const plan = await createProcessingPlan(pdfDoc, rules)
@@ -35,8 +49,56 @@ describe('createProcessingPlan', () => {
       expect(plan.embeddedFonts.size).toBe(2)
       expect(plan.embeddedFonts.has('body')).toBe(true)
       expect(plan.embeddedFonts.has('bold')).toBe(true)
-      expect(plan.embeddedFonts.get('body')).toBeDefined()
-      expect(plan.embeddedFonts.get('bold')).toBeDefined()
+      expect(plan.embeddedFonts.has('unused')).toBe(false)
+    })
+
+    it('should embed font specified in defaults even if not explicitly used', async () => {
+      const rules: DocumentRules = {
+        documentMeta: {
+          fonts: {
+            body: { type: 'standard', name: StandardFonts.Helvetica },
+          },
+          defaults: {
+            fontName: 'body',
+          },
+        },
+        processingRules: [
+          {
+            type: 'text',
+            position: { x: 0, y: 0 },
+            element: { content: 'Text using default font' },
+            page: { type: 'first' },
+          },
+        ],
+      }
+
+      const plan = await createProcessingPlan(pdfDoc, rules)
+
+      expect(plan.embeddedFonts.size).toBe(1)
+      expect(plan.embeddedFonts.has('body')).toBe(true)
+    })
+
+    it('should not embed any fonts when none are used', async () => {
+      const rules: DocumentRules = {
+        documentMeta: {
+          fonts: {
+            body: { type: 'standard', name: StandardFonts.Helvetica },
+            bold: { type: 'standard', name: StandardFonts.HelveticaBold },
+          },
+        },
+        processingRules: [
+          {
+            type: 'text',
+            position: { x: 0, y: 0 },
+            element: { content: 'Text without font' },
+            page: { type: 'first' },
+          },
+        ],
+      }
+
+      const plan = await createProcessingPlan(pdfDoc, rules)
+
+      expect(plan.embeddedFonts.size).toBe(0)
     })
 
     it('should handle no fonts defined', async () => {
@@ -50,7 +112,47 @@ describe('createProcessingPlan', () => {
       expect(plan.embeddedFonts.size).toBe(0)
     })
 
-    it('should embed multiple different font types', async () => {
+    it('should throw error when referenced font is not defined', async () => {
+      const rules: DocumentRules = {
+        documentMeta: {
+          fonts: {
+            body: { type: 'standard', name: StandardFonts.Helvetica },
+          },
+        },
+        processingRules: [
+          {
+            type: 'text',
+            position: { x: 0, y: 0 },
+            element: { content: 'Text', fontName: 'undefined-font' },
+            page: { type: 'first' },
+          },
+        ],
+      }
+
+      await expect(createProcessingPlan(pdfDoc, rules)).rejects.toThrow(
+        "Font 'undefined-font' is referenced but not defined in documentMeta.fonts"
+      )
+    })
+
+    it('should throw error when default font is not defined', async () => {
+      const rules: DocumentRules = {
+        documentMeta: {
+          fonts: {
+            body: { type: 'standard', name: StandardFonts.Helvetica },
+          },
+          defaults: {
+            fontName: 'missing-default',
+          },
+        },
+        processingRules: [],
+      }
+
+      await expect(createProcessingPlan(pdfDoc, rules)).rejects.toThrow(
+        "Font 'missing-default' is referenced but not defined in documentMeta.fonts"
+      )
+    })
+
+    it('should embed multiple fonts when used across different rules', async () => {
       const rules: DocumentRules = {
         documentMeta: {
           fonts: {
@@ -59,7 +161,26 @@ describe('createProcessingPlan', () => {
             times: { type: 'standard', name: StandardFonts.TimesRoman },
           },
         },
-        processingRules: [],
+        processingRules: [
+          {
+            type: 'text',
+            position: { x: 0, y: 0 },
+            element: { content: 'Helvetica', fontName: 'helvetica' },
+            page: { type: 'first' },
+          },
+          {
+            type: 'text',
+            position: { x: 0, y: 50 },
+            element: { content: 'Courier', fontName: 'courier' },
+            page: { type: 'first' },
+          },
+          {
+            type: 'text',
+            position: { x: 0, y: 100 },
+            element: { content: 'Times', fontName: 'times' },
+            page: { type: 'first' },
+          },
+        ],
       }
 
       const plan = await createProcessingPlan(pdfDoc, rules)
@@ -68,6 +189,42 @@ describe('createProcessingPlan', () => {
       expect(plan.embeddedFonts.has('helvetica')).toBe(true)
       expect(plan.embeddedFonts.has('courier')).toBe(true)
       expect(plan.embeddedFonts.has('times')).toBe(true)
+    })
+
+    it('should deduplicate fonts used multiple times', async () => {
+      const rules: DocumentRules = {
+        documentMeta: {
+          fonts: {
+            body: { type: 'standard', name: StandardFonts.Helvetica },
+          },
+        },
+        processingRules: [
+          {
+            type: 'text',
+            position: { x: 0, y: 0 },
+            element: { content: 'First', fontName: 'body' },
+            page: { type: 'first' },
+          },
+          {
+            type: 'text',
+            position: { x: 0, y: 50 },
+            element: { content: 'Second', fontName: 'body' },
+            page: { type: 'first' },
+          },
+          {
+            type: 'text',
+            position: { x: 0, y: 100 },
+            element: { content: 'Third', fontName: 'body' },
+            page: { type: 'first' },
+          },
+        ],
+      }
+
+      const plan = await createProcessingPlan(pdfDoc, rules)
+
+      // Should only embed once despite being used 3 times
+      expect(plan.embeddedFonts.size).toBe(1)
+      expect(plan.embeddedFonts.has('body')).toBe(true)
     })
   })
 

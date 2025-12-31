@@ -78,9 +78,29 @@ export async function createProcessingPlan(
   const pageCount = pdfDoc.getPageCount()
   const defaults = rules.documentMeta.defaults ?? {}
 
-  // Pre-embed fonts from DocumentMeta
+  // Collect font names that are actually used in processing rules
+  const usedFontNames = new Set<string>()
+
+  // Add default font if specified
+  if (defaults.fontName) {
+    usedFontNames.add(defaults.fontName)
+  }
+
+  // Add fonts from text rules
+  for (const rule of rules.processingRules) {
+    if (rule.type === 'text' && rule.element.fontName) {
+      usedFontNames.add(rule.element.fontName)
+    }
+  }
+
+  // Pre-embed only the fonts that are actually used
   if (rules.documentMeta.fonts) {
-    for (const [fontName, fontDef] of Object.entries(rules.documentMeta.fonts)) {
+    for (const fontName of usedFontNames) {
+      const fontDef = rules.documentMeta.fonts[fontName]
+      if (!fontDef) {
+        throw new Error(`Font '${fontName}' is referenced but not defined in documentMeta.fonts`)
+      }
+
       if (fontDef.type === 'standard') {
         const font = await pdfDoc.embedFont(fontDef.name as StandardFonts)
         embeddedFonts.set(fontName, font)
