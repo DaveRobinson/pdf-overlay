@@ -8,7 +8,12 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'pdf-overlay',
-      fileName: 'pdf-overlay',
+      fileName: (format) => `pdf-overlay.${format === 'es' ? 'js' : 'cjs'}`,
+      formats: ['es', 'cjs'], // ESM and CommonJS for Node.js
+    },
+    rollupOptions: {
+      // Externalize Node.js built-in modules
+      external: ['fs/promises', 'fs', 'path', 'os'],
     },
   },
   plugins: [dts()],

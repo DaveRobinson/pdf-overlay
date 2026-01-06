@@ -1,15 +1,43 @@
 {
   "name": "pdf-overlay",
   "version": "0.0.0",
+  "description": "TypeScript library for placing content (text, images) on PDF files using a declarative rules-based system",
   "type": "module",
-  "main": "./dist/pdf-overlay.umd.cjs",
+  "main": "./dist/pdf-overlay.cjs",
   "module": "./dist/pdf-overlay.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/pdf-overlay.js",
-      "require": "./dist/pdf-overlay.umd.cjs"
+      "require": "./dist/pdf-overlay.cjs"
     }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "pdf",
+    "pdf-lib",
+    "overlay",
+    "text",
+    "image",
+    "document",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DaveRobinson/pdf-overlay.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DaveRobinson/pdf-overlay/issues"
+  },
+  "homepage": "https://github.com/DaveRobinson/pdf-overlay#readme",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
   },
   "scripts": {
     "dev": "vite",
@@ -17,7 +45,8 @@
     "preview": "vite preview",
     "generate-schema": "ts-json-schema-generator --path 'src/types.ts' --type 'DocumentRules' --out schema.json",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "prepublishOnly": "npm run test:run && npm run build"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
