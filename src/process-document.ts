@@ -1,11 +1,9 @@
 import { PDFDocument, PDFPage, PDFImage, PDFFont, StandardFonts } from 'pdf-lib'
-import { readFile, writeFile } from 'fs/promises'
-import { tmpdir } from 'os'
-import { join } from 'path'
-import type { DocumentRules, ProcessingRule, DefaultTextStyle } from './types'
+import type { DocumentRules, ProcessingRule, DefaultTextStyle, ProcessDocumentOptions } from './types'
 import { parseColour } from './colour-utils'
 import { resolvePageNumbers } from './page-utils'
 import { calculateAlignedX, calculateAlignedY } from './text-layout-utils'
+import { resolveResource } from './resource-utils'
 
 export type ProcessingPlan = {
   pageRules: Map<number, ProcessingRule[]>
@@ -17,37 +15,57 @@ export type ProcessingPlan = {
 /**
  * Process a PDF document by applying overlay rules
  *
- * @param sourcePath - Path to the source PDF file
+ * @param pdfBytes - Source PDF as Uint8Array
  * @param rules - Document rules defining overlays to apply
- * @param outputPath - Optional output path (defaults to temp file)
- * @returns Path to the processed PDF file
+ * @param options - Optional processing options (resources, basePaths, etc.)
+ * @returns Processed PDF as Uint8Array
  */
 export async function processDocument(
-  sourcePath: string,
+  pdfBytes: Uint8Array,
   rules: DocumentRules,
-  outputPath?: string
-): Promise<string> {
+  options?: ProcessDocumentOptions
+): Promise<Uint8Array> {
   // Load source PDF
-  const existingPdfBytes = await readFile(sourcePath)
-  const pdfDoc = await PDFDocument.load(existingPdfBytes)
+  const pdfDoc = await PDFDocument.load(pdfBytes)
 
   // Apply processing rules
-  await applyRules(pdfDoc, rules)
+  await applyRules(pdfDoc, rules, options)
 
-  // Save to file
-  const pdfBytes = await pdfDoc.save()
-  const finalPath = outputPath ?? generateTempPath()
-  await writeFile(finalPath, pdfBytes)
+  // Return processed PDF bytes
+  return await pdfDoc.save()
+}
 
-  return finalPath
+/**
+ * Process a PDF file by applying overlay rules (convenience wrapper for file-based workflows)
+ *
+ * @param sourcePath - Path to the source PDF file
+ * @param rules - Document rules defining overlays to apply
+ * @param outputPath - Path where the processed PDF should be written
+ * @param options - Optional processing options (resources, basePaths, etc.)
+ */
+export async function processDocumentFile(
+  sourcePath: string,
+  rules: DocumentRules,
+  outputPath: string,
+  options?: ProcessDocumentOptions
+): Promise<void> {
+  const { readFile, writeFile } = await import('fs/promises')
+
+  const pdfBytes = await readFile(sourcePath)
+  const processedBytes = await processDocument(pdfBytes, rules, options)
+  await writeFile(outputPath, processedBytes)
 }
 
 /**
  * Apply all processing rules to the PDF document
  */
-async function applyRules(pdfDoc: PDFDocument, rules: DocumentRules): Promise<void> {
+async function applyRules(
+  pdfDoc: PDFDocument,
+  rules: DocumentRules,
+  options?: ProcessDocumentOptions
+): Promise<void> {
   // Create a plan grouping rules by page index and pre-embed images/fonts
-  const plan = await createProcessingPlan(pdfDoc, rules)
+  const plan = await createProcessingPlan(pdfDoc, rules, options)
 
   // Loop over the map
   for (const [pageIndex, pageRules] of plan.pageRules.entries()) {
@@ -70,7 +88,8 @@ async function applyRules(pdfDoc: PDFDocument, rules: DocumentRules): Promise<vo
  */
 export async function createProcessingPlan(
   pdfDoc: PDFDocument,
-  rules: DocumentRules
+  rules: DocumentRules,
+  options?: ProcessDocumentOptions
 ): Promise<ProcessingPlan> {
   const pageRules = new Map<number, ProcessingRule[]>()
   const embeddedImages = new Map<string, PDFImage>()
@@ -93,6 +112,10 @@ export async function createProcessingPlan(
     }
   }
 
+  // Determine if we allow remote URLs (default: true in browser, false in Node.js)
+  const isBrowser = typeof window !== 'undefined'
+  const allowRemoteUrls = options?.allowRemoteUrls ?? isBrowser
+
   // Pre-embed only the fonts that are actually used
   if (rules.documentMeta.fonts) {
     for (const fontName of usedFontNames) {
@@ -102,39 +125,56 @@ export async function createProcessingPlan(
       }
 
       if (fontDef.type === 'standard') {
-        const font = await pdfDoc.embedFont(fontDef.name as StandardFonts)
+        // Embed standard font
+        const font = await pdfDoc.embedFont(fontDef.family as StandardFonts)
         embeddedFonts.set(fontName, font)
       } else if (fontDef.type === 'custom') {
-        const fontBytes = await readFile(fontDef.path)
+        // Custom font - must be provided via resources
+        if (!options?.resources?.fonts?.[fontName]) {
+          throw new Error(
+            `Custom font '${fontName}' not found in resources. ` +
+            `Provide it in options.resources.fonts['${fontName}']`
+          )
+        }
+
+        const fontBytes = await resolveResource(
+          options.resources.fonts[fontName],
+          options.basePaths?.fonts,
+          allowRemoteUrls
+        )
+
         const font = await pdfDoc.embedFont(fontBytes)
         embeddedFonts.set(fontName, font)
       }
     }
   }
 
-  // Collect unique image paths
-  const imagePaths = new Set<string>()
+  // Collect all unique image names referenced in rules
+  const imageNames = new Set<string>()
   for (const rule of rules.processingRules) {
     if (rule.type === 'image') {
-      imagePaths.add(rule.element.path)
+      imageNames.add(rule.element.name)
     }
   }
 
-  // Pre-embed all unique images
-  for (const imagePath of imagePaths) {
-    const imageBytes = await readFile(imagePath)
-    const extension = imagePath.toLowerCase().split('.').pop()
-
-    let image: PDFImage
-    if (extension === 'png') {
-      image = await pdfDoc.embedPng(imageBytes)
-    } else if (extension === 'jpg' || extension === 'jpeg') {
-      image = await pdfDoc.embedJpg(imageBytes)
-    } else {
-      throw new Error(`Unsupported image format: ${extension}`)
+  // Pre-embed all referenced images from resources
+  for (const imageName of imageNames) {
+    if (!options?.resources?.images?.[imageName]) {
+      throw new Error(
+        `Image '${imageName}' not found in resources. ` +
+        `Provide it in options.resources.images['${imageName}']`
+      )
     }
 
-    embeddedImages.set(imagePath, image)
+    const imageBytes = await resolveResource(
+      options.resources.images[imageName],
+      options.basePaths?.images,
+      allowRemoteUrls
+    )
+
+    // Detect image type and embed
+    const image = await embedImageBytes(pdfDoc, imageBytes, imageName)
+    embeddedImages.set(imageName, image)
   }
 
   // Group rules by page index
@@ -154,12 +194,29 @@ export async function createProcessingPlan(
 }
 
 /**
- * Generate a unique temporary file path
+ * Embed image bytes into PDF document
+ * Detects format from magic bytes
  */
-function generateTempPath(): string {
-  const timestamp = Date.now()
-  const random = Math.random().toString(36).substring(2, 9)
-  return join(tmpdir(), `pdf-overlay-${timestamp}-${random}.pdf`)
+async function embedImageBytes(
+  pdfDoc: PDFDocument,
+  imageBytes: Uint8Array,
+  imageName: string
+): Promise<PDFImage> {
+  // Detect image type from magic bytes
+  const isPng = imageBytes[0] === 0x89 && imageBytes[1] === 0x50 && imageBytes[2] === 0x4e && imageBytes[3] === 0x47
+  const isJpeg = imageBytes[0] === 0xff && imageBytes[1] === 0xd8 && imageBytes[2] === 0xff
+
+  if (isPng) {
+    return await pdfDoc.embedPng(imageBytes)
+  } else if (isJpeg) {
+    return await pdfDoc.embedJpg(imageBytes)
+  } else {
+    throw new Error(
+      `Unsupported image format for '${imageName}'. ` +
+      `Only PNG and JPEG are supported. ` +
+      `Magic bytes: ${Array.from(imageBytes.slice(0, 4)).map(b => '0x' + b.toString(16)).join(' ')}`
+    )
+  }
 }
 
 /**
@@ -237,9 +294,10 @@ function applyImageElement(
   rule: Extract<ProcessingRule, { type: 'image' }>,
   embeddedImages: Map<string, PDFImage>
 ): void {
-  const image = embeddedImages.get(rule.element.path)
+  // Image must be pre-embedded and cached
+  const image = embeddedImages.get(rule.element.name)
   if (!image) {
-    throw new Error(`Image not found in embedded images: ${rule.element.path}`)
+    throw new Error(`Image '${rule.element.name}' not found in embedded images`)
   }
 
   page.drawImage(image, {

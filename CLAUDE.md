@@ -36,6 +36,40 @@ The library follows a two-phase processing model:
 
 This architecture prevents duplicate embedding of fonts/images and simplifies per-page rule application.
 
+### API Functions
+
+**`processDocument(pdfBytes, rules, options?)`**
+- Core function: bytes in, bytes out
+- Works in both Node.js and browser environments
+- Returns processed PDF as Uint8Array
+
+**`processDocumentFile(sourcePath, rules, outputPath, options?)`**
+- Convenience wrapper for file-based workflows (Node.js only)
+- Reads input file, processes, writes output file
+- Uses `processDocument` internally
+
+**`ProcessDocumentOptions`**
+- `resources`: Map of font/image names to data (Uint8Array) or paths (string)
+- `basePaths`: Base directories for resolving file paths (security boundary)
+- `allowRemoteUrls`: Enable/disable URL fetching (default: false in Node.js, true in browser)
+
+### Resources System
+
+The resources system provides a clean separation between rules (configuration) and assets (data):
+
+**Key Principles:**
+- Rules reference fonts/images by name only
+- Actual font/image data provided separately via `options.resources`
+- Resources can be Uint8Array (pre-loaded) or string (file path or URL)
+- File paths are resolved relative to `basePaths` with security checks
+- All resources are pre-embedded once during planning phase (automatic caching)
+
+**Security Features:**
+- Path traversal protection (blocks `../` escapes)
+- File access restricted to configured `basePaths`
+- Remote URLs require explicit opt-in via `allowRemoteUrls`
+- Buffer to Uint8Array conversion for cross-platform consistency
+
 ### Type System (src/types.ts)
 
 The DocumentRules structure has two main sections:
@@ -44,17 +78,21 @@ The DocumentRules structure has two main sections:
 - `processingRules`: Array of rules to apply (text or image placement)
 
 **Key Design Patterns:**
-- Font definitions are named references (e.g., 'body', 'heading') that get resolved during planning
-- PageSelectors support negative indexing (-1 = last page, -2 = second-to-last)
-- Styling cascades: element-specific → documentMeta.defaults → undefined
-- ColourSpec supports multiple formats: hex strings, RGB, CMYK, greyscale
-- All dimensions (bounds, positions) are in PDF points (1/72 inch)
+- **Font definitions**: Explicit type ('standard' or 'custom') with `family` field. Custom fonts must be provided via resources.
+- **Image references**: Images use `name` field that references resources (no inline data or paths)
+- **Resources system**: All custom fonts and images are provided separately via `ProcessDocumentOptions.resources`
+- **Security**: File paths resolved via `basePaths` with path traversal protection
+- **PageSelectors**: Support negative indexing (-1 = last page, -2 = second-to-last)
+- **Styling cascades**: element-specific → documentMeta.defaults → undefined
+- **ColourSpec**: Multiple formats: hex strings, RGB, CMYK, greyscale
+- **Dimensions**: All positions/bounds in PDF points (1/72 inch)
 
 ### Utility Modules
 
 - `page-utils.ts`: Handles PageSelector resolution and negative page number normalization
 - `colour-utils.ts`: Converts ColourSpec types to pdf-lib Color objects
 - `text-layout-utils.ts`: Text measurement and alignment position calculations using pdf-lib font metrics
+- `resource-utils.ts`: Resource resolution with security controls (path traversal protection, URL fetching, Uint8Array conversion)
 
 ### Build Configuration
 
@@ -66,8 +104,9 @@ Vite is configured for library mode (vite.config.ts):
 ## Testing Strategy
 
 Tests are located in the `tests/` directory. The test suite focuses on:
-- Unit testing utility functions (page-utils, colour-utils, text-layout-utils)
+- Unit testing utility functions (page-utils, colour-utils, text-layout-utils, resource-utils)
 - Unit testing the planning phase in isolation (process-document.unit.test.ts)
+- Security testing for resource resolution (path traversal, URL validation)
 
 When testing the createProcessingPlan function, note that it's exported with `@internal` comment for testing purposes only.
 
@@ -83,8 +122,10 @@ When testing the createProcessingPlan function, note that it's exported with `@i
 - **Cascading defaults**: All styling and alignment properties support element → defaults cascade
 
 ### Image Placement
-- Basic image placement with position and optional width/height
-- Pre-embedding of images (PNG/JPG)
+- Image placement via named resources with position and optional width/height
+- Format detection via magic bytes (PNG/JPG supported)
+- Pre-embedding during planning phase (automatic caching)
+- All images must be provided via resources (no inline data or direct paths)
 
 ## Unsupported pdf-lib Features
 
@@ -100,3 +141,13 @@ The library intentionally does not implement the following pdf-lib capabilities:
 - **Viewer settings**: Viewer preferences and display settings
 
 These features are not needed for the library's core use case of placing text and images on existing PDFs.
+
+## Samples
+
+The `samples/` directory contains demonstration scripts:
+- `text-alignment-demo.ts` - Comprehensive text alignment and bounds demonstration
+- `text-styling-demo.ts` - Font, color, and styling features demonstration
+
+Run samples using tsx: `npx tsx samples/text-alignment-demo.ts`
+
+**Note:** Samples use the new API with `processDocumentFile` and resources-based asset management.

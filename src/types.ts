@@ -8,8 +8,8 @@ export type DocumentMeta = {
 }
 
 export type FontDefinition =
-  | { type: 'standard'; name: string }
-  | { type: 'custom'; path: string }
+  | { type: 'standard'; family: string }
+  | { type: 'custom'; family: string }
 
 export type DefaultTextStyle = {
   fontName?: string
@@ -66,13 +66,41 @@ export type TextElement = {
   verticalAlign?: VerticalAlign
 }
 export type ImageElement = {
-    path: string
-    width?: number
-    height?: number
+  name: string
+  width?: number
+  height?: number
 }
-export type PageSelector = 
+export type PageSelector =
 | {type: 'all' }
 | { type: 'specific', pages: number[] }
 | { type: 'first' }
 | { type: 'last' }
 | { type: 'range', from: number, to: number }
+
+/**
+ * Resources for resolving fonts and images
+ * Values can be either:
+ * - Uint8Array: Raw file data
+ * - string: URL to fetch or file path (requires basePaths in options)
+ */
+export type DocumentResources = {
+  fonts?: Record<string, string | Uint8Array>
+  images?: Record<string, string | Uint8Array>
+}
+
+/**
+ * Options for processing documents
+ */
+export type ProcessDocumentOptions = {
+  /** Pre-loaded or referenced resources */
+  resources?: DocumentResources
+
+  /** Base paths for resolving file paths in resources */
+  basePaths?: {
+    fonts?: string
+    images?: string
+  }
+
+  /** Allow fetching remote URLs (default: false in Node.js, true in browser) */
+  allowRemoteUrls?: boolean
+}

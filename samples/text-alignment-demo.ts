@@ -1,4 +1,4 @@
-import { processDocument } from '../src/process-document'
+import { processDocumentFile } from '../src/process-document'
 import type { DocumentRules } from '../src/types'
 
 async function testTextAlignment() {
@@ -7,8 +7,8 @@ async function testTextAlignment() {
   const rules: DocumentRules = {
     documentMeta: {
       fonts: {
-        body: { type: 'standard', name: 'Helvetica' },
-        bold: { type: 'standard', name: 'Helvetica-Bold' },
+        body: { type: 'standard', family: 'Helvetica' },
+        bold: { type: 'standard', family: 'Helvetica-Bold' },
       },
       defaults: {
         fontName: 'body',
@@ -377,8 +377,8 @@ async function testTextAlignment() {
     ],
   }
 
-  const outputPath = await processDocument('sample.pdf', rules, 'test-output-text-alignment.pdf')
-  console.log(`✓ Test PDF created: ${outputPath}`)
+  await processDocumentFile('sample.pdf', rules, 'test-output-text-alignment.pdf')
+  console.log('✓ Test PDF created: test-output-text-alignment.pdf')
   console.log('Open the PDF to visually verify all text alignment features')
 }
 

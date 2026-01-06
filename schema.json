@@ -2,6 +2,18 @@
   "$ref": "#/definitions/DocumentRules",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
+    "BoundsSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "height": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
     "ColourSpec": {
       "anyOf": [
         {
@@ -83,6 +95,9 @@
     "DefaultTextStyle": {
       "additionalProperties": false,
       "properties": {
+        "align": {
+          "$ref": "#/definitions/HorizontalAlign"
+        },
         "colour": {
           "$ref": "#/definitions/ColourSpec"
         },
@@ -94,6 +109,9 @@
         },
         "lineHeight": {
           "type": "number"
+        },
+        "verticalAlign": {
+          "$ref": "#/definitions/VerticalAlign"
         }
       },
       "type": "object"
@@ -137,7 +155,7 @@
         {
           "additionalProperties": false,
           "properties": {
-            "name": {
+            "family": {
               "type": "string"
             },
             "type": {
@@ -147,14 +165,14 @@
           },
           "required": [
             "type",
-            "name"
+            "family"
           ],
           "type": "object"
         },
         {
           "additionalProperties": false,
           "properties": {
-            "path": {
+            "family": {
               "type": "string"
             },
             "type": {
@@ -164,11 +182,19 @@
           },
           "required": [
             "type",
-            "path"
+            "family"
           ],
           "type": "object"
         }
       ]
+    },
+    "HorizontalAlign": {
+      "enum": [
+        "left",
+        "center",
+        "right"
+      ],
+      "type": "string"
     },
     "ImageElement": {
       "additionalProperties": false,
@@ -176,7 +202,7 @@
         "height": {
           "type": "number"
         },
-        "path": {
+        "name": {
           "type": "string"
         },
         "width": {
@@ -184,7 +210,7 @@
         }
       },
       "required": [
-        "path"
+        "name"
       ],
       "type": "object"
     },
@@ -351,6 +377,12 @@
     "TextElement": {
       "additionalProperties": false,
       "properties": {
+        "align": {
+          "$ref": "#/definitions/HorizontalAlign"
+        },
+        "bounds": {
+          "$ref": "#/definitions/BoundsSpec"
+        },
         "colour": {
           "$ref": "#/definitions/ColourSpec"
         },
@@ -368,12 +400,23 @@
         },
         "opacity": {
           "type": "number"
+        },
+        "verticalAlign": {
+          "$ref": "#/definitions/VerticalAlign"
         }
       },
       "required": [
         "content"
       ],
       "type": "object"
+    },
+    "VerticalAlign": {
+      "enum": [
+        "top",
+        "middle",
+        "bottom"
+      ],
+      "type": "string"
     }
   }
 }

@@ -23,9 +23,9 @@ describe('createProcessingPlan', () => {
       const rules: DocumentRules = {
         documentMeta: {
           fonts: {
-            body: { type: 'standard', name: StandardFonts.Helvetica },
-            bold: { type: 'standard', name: StandardFonts.HelveticaBold },
-            unused: { type: 'standard', name: StandardFonts.Courier },
+            body: { type: 'standard', family: StandardFonts.Helvetica },
+            bold: { type: 'standard', family: StandardFonts.HelveticaBold },
+            unused: { type: 'standard', family: StandardFonts.Courier },
           },
         },
         processingRules: [
@@ -56,7 +56,7 @@ describe('createProcessingPlan', () => {
       const rules: DocumentRules = {
         documentMeta: {
           fonts: {
-            body: { type: 'standard', name: StandardFonts.Helvetica },
+            body: { type: 'standard', family: StandardFonts.Helvetica },
           },
           defaults: {
             fontName: 'body',
@@ -82,8 +82,8 @@ describe('createProcessingPlan', () => {
       const rules: DocumentRules = {
         documentMeta: {
           fonts: {
-            body: { type: 'standard', name: StandardFonts.Helvetica },
-            bold: { type: 'standard', name: StandardFonts.HelveticaBold },
+            body: { type: 'standard', family: StandardFonts.Helvetica },
+            bold: { type: 'standard', family: StandardFonts.HelveticaBold },
           },
         },
         processingRules: [
@@ -116,7 +116,7 @@ describe('createProcessingPlan', () => {
       const rules: DocumentRules = {
         documentMeta: {
           fonts: {
-            body: { type: 'standard', name: StandardFonts.Helvetica },
+            body: { type: 'standard', family: StandardFonts.Helvetica },
           },
         },
         processingRules: [
@@ -138,7 +138,7 @@ describe('createProcessingPlan', () => {
       const rules: DocumentRules = {
         documentMeta: {
           fonts: {
-            body: { type: 'standard', name: StandardFonts.Helvetica },
+            body: { type: 'standard', family: StandardFonts.Helvetica },
           },
           defaults: {
             fontName: 'missing-default',
@@ -156,9 +156,9 @@ describe('createProcessingPlan', () => {
       const rules: DocumentRules = {
         documentMeta: {
           fonts: {
-            helvetica: { type: 'standard', name: StandardFonts.Helvetica },
-            courier: { type: 'standard', name: StandardFonts.Courier },
-            times: { type: 'standard', name: StandardFonts.TimesRoman },
+            helvetica: { type: 'standard', family: StandardFonts.Helvetica },
+            courier: { type: 'standard', family: StandardFonts.Courier },
+            times: { type: 'standard', family: StandardFonts.TimesRoman },
           },
         },
         processingRules: [
@@ -195,7 +195,7 @@ describe('createProcessingPlan', () => {
       const rules: DocumentRules = {
         documentMeta: {
           fonts: {
-            body: { type: 'standard', name: StandardFonts.Helvetica },
+            body: { type: 'standard', family: StandardFonts.Helvetica },
           },
         },
         processingRules: [

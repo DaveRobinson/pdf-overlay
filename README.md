@@ -4,14 +4,16 @@ This library provides a way to add content to a PDF file by applying a structure
 
 ## Usage
 
+### Node.js (File-based)
+
 ```typescript
-import { processDocument } from './src/process-document'
-import type { DocumentRules } from './src/types'
+import { processDocumentFile } from 'pdf-overlay'
+import type { DocumentRules } from 'pdf-overlay'
 
 const rules: DocumentRules = {
   documentMeta: {
     fonts: {
-      body: { type: 'standard', name: 'Helvetica' },
+      body: { type: 'standard', family: 'Helvetica' },
     },
     defaults: {
       fontName: 'body',
@@ -40,10 +42,68 @@ const rules: DocumentRules = {
   ],
 }
 
-await processDocument('input.pdf', rules, 'output.pdf')
+await processDocumentFile('input.pdf', rules, 'output.pdf')
 ```
 
-See the [samples](./samples) directory for more examples.
+### Browser (Bytes-based)
+
+```typescript
+import { processDocument } from 'pdf-overlay'
+
+const pdfBytes = new Uint8Array(await pdfFile.arrayBuffer())
+const processedBytes = await processDocument(pdfBytes, rules)
+
+// Display in iframe
+const blob = new Blob([processedBytes], { type: 'application/pdf' })
+document.getElementById('preview').src = URL.createObjectURL(blob)
+```
+
+### With Custom Fonts and Images
+
+```typescript
+import { processDocumentFile } from 'pdf-overlay'
+
+const rules = {
+  documentMeta: {
+    fonts: {
+      brand: { type: 'custom', family: 'My Brand Font' }
+    }
+  },
+  processingRules: [
+    {
+      type: 'image',
+      element: { name: 'logo' },
+      position: { x: 50, y: 750 },
+      page: { type: 'all' }
+    }
+  ]
+}
+
+await processDocumentFile('input.pdf', rules, 'output.pdf', {
+  basePaths: {
+    fonts: './assets/fonts',
+    images: './assets/images'
+  },
+  resources: {
+    fonts: { brand: 'BrandFont-Regular.ttf' },
+    images: { logo: 'company-logo.png' }
+  }
+})
+```
+
+## Running the Samples
+
+The `samples/` directory contains demonstration scripts:
+
+- `text-alignment-demo.ts` - Demonstrates text alignment and bounds
+- `text-styling-demo.ts` - Demonstrates fonts, colors, and styling
+
+Run samples with [tsx](https://github.com/privatenumber/tsx):
+
+```bash
+npx tsx samples/text-alignment-demo.ts
+npx tsx samples/text-styling-demo.ts
+```
 
 ## Features
 

@@ -1,4 +1,4 @@
-export { processDocument } from './process-document'
+export { processDocument, processDocumentFile } from './process-document'
 export type {
   DocumentRules,
   DocumentMeta,
@@ -10,4 +10,9 @@ export type {
   TextElement,
   ImageElement,
   PageSelector,
+  DocumentResources,
+  ProcessDocumentOptions,
+  BoundsSpec,
+  HorizontalAlign,
+  VerticalAlign,
 } from './types'

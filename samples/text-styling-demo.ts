@@ -1,4 +1,4 @@
-import { processDocument } from '../src/process-document'
+import { processDocumentFile } from '../src/process-document'
 import type { DocumentRules } from '../src/types'
 
 async function testTextStyling() {
@@ -7,9 +7,9 @@ async function testTextStyling() {
   const rules: DocumentRules = {
     documentMeta: {
       fonts: {
-        body: { type: 'standard', name: 'Helvetica' },
-        bold: { type: 'standard', name: 'Helvetica-Bold' },
-        mono: { type: 'standard', name: 'Courier' },
+        body: { type: 'standard', family: 'Helvetica' },
+        bold: { type: 'standard', family: 'Helvetica-Bold' },
+        mono: { type: 'standard', family: 'Courier' },
       },
       defaults: {
         fontName: 'body',
@@ -166,8 +166,8 @@ async function testTextStyling() {
     ],
   }
 
-  const outputPath = await processDocument('sample.pdf', rules, 'test-output-text-styling.pdf')
-  console.log(`✓ Test PDF created: ${outputPath}`)
+  await processDocumentFile('sample.pdf', rules, 'test-output-text-styling.pdf')
+  console.log('✓ Test PDF created: test-output-text-styling.pdf')
   console.log('Open the PDF to visually verify all text styling features')
 }
 
