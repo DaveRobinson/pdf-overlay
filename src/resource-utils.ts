@@ -1,6 +1,3 @@
-import { resolve, relative } from 'path'
-import { readFile } from 'fs/promises'
-
 /**
  * Resolve a resource value to Uint8Array
  *
@@ -40,11 +37,15 @@ export async function resolveResource(
     )
   }
 
+  // Import Node.js modules dynamically (only loads if we reach this code path)
+  const path = await import('path')
+  const fs = await import('fs/promises')
+
   // Resolve path relative to base
-  const fullPath = resolve(basePath, value)
+  const fullPath = path.resolve(basePath, value)
 
   // Security check: ensure resolved path is within basePath
-  const relativePath = relative(basePath, fullPath)
+  const relativePath = path.relative(basePath, fullPath)
   if (relativePath.startsWith('..') || relativePath === '') {
     throw new Error(
       `Path traversal detected: "${value}" resolves outside base path "${basePath}"`
@@ -53,7 +54,7 @@ export async function resolveResource(
 
   // Read and return file contents
   try {
-    const buffer = await readFile(fullPath)
+    const buffer = await fs.readFile(fullPath)
     // Convert Buffer to Uint8Array (Buffer is a subclass but we want pure Uint8Array for cross-platform consistency)
     return new Uint8Array(buffer)
   } catch (error) {

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Overlay Browser Demo</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+    h1 { font-size: 24px; margin-bottom: 20px; }
+    .field { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: 500; }
+    input, textarea { width: 100%; padding: 8px; box-sizing: border-box; }
+    input[type="color"] { width: 80px; height: 40px; padding: 2px; cursor: pointer; }
+    button { padding: 10px 20px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+    button:hover { background: #0052a3; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .output { margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>PDF Overlay Demo</h1>
+
+  <div class="field">
+    <label for="pdf">Select PDF file:</label>
+    <input type="file" id="pdf" accept=".pdf" />
+  </div>
+
+  <div class="field">
+    <label for="text">Text to overlay:</label>
+    <textarea id="text" rows="2">Hello from pdf-overlay!</textarea>
+  </div>
+
+  <div class="field">
+    <label for="x">X Position (points):</label>
+    <input type="number" id="x" value="50" />
+  </div>
+
+  <div class="field">
+    <label for="y">Y Position (points):</label>
+    <input type="number" id="y" value="750" />
+  </div>
+
+  <div class="field">
+    <label for="fontSize">Font Size:</label>
+    <input type="number" id="fontSize" value="24" />
+  </div>
+
+  <div class="field">
+    <label for="color">Color:</label>
+    <input type="color" id="color" value="#0066cc" />
+  </div>
+
+  <button id="process">Process PDF</button>
+
+  <div class="output" id="output" style="display: none;"></div>
+
+  <div id="preview" style="margin-top: 20px; display: none;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      <div>
+        <h2 style="font-size: 18px; margin-bottom: 10px;">Original:</h2>
+        <canvas id="original-canvas" style="border: 1px solid #ccc; max-width: 100%;"></canvas>
+      </div>
+      <div>
+        <h2 style="font-size: 18px; margin-bottom: 10px;">Processed:</h2>
+        <canvas id="processed-canvas" style="border: 1px solid #ccc; max-width: 100%;"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { processDocument } from '../dist/pdf-overlay.js';
+
+    // Load PDF.js
+    const pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
+
+    const processBtn = document.getElementById('process');
+    const pdfInput = document.getElementById('pdf');
+    const output = document.getElementById('output');
+    const preview = document.getElementById('preview');
+    const originalCanvas = document.getElementById('original-canvas');
+    const processedCanvas = document.getElementById('processed-canvas');
+
+    processBtn.addEventListener('click', async () => {
+      const file = pdfInput.files[0];
+      if (!file) {
+        alert('Please select a PDF file');
+        return;
+      }
+
+      output.style.display = 'none';
+      processBtn.disabled = true;
+      processBtn.textContent = 'Processing...';
+
+      try {
+        // Read PDF file as ArrayBuffer
+        const arrayBuffer = await file.arrayBuffer();
+        const pdfBytes = new Uint8Array(arrayBuffer);
+        console.log('Input PDF loaded:', pdfBytes.length, 'bytes');
+
+        // Build rules from form inputs
+        const rules = {
+          documentMeta: {
+            fonts: {
+              main: { type: 'standard', family: 'Helvetica' }
+            },
+            defaults: {
+              fontName: 'main',
+              fontSize: parseInt(document.getElementById('fontSize').value),
+              colour: document.getElementById('color').value
+            }
+          },
+          processingRules: [
+            {
+              type: 'text',
+              page: { type: 'first' },
+              position: {
+                x: parseInt(document.getElementById('x').value),
+                y: parseInt(document.getElementById('y').value)
+              },
+              element: {
+                content: document.getElementById('text').value
+              }
+            }
+          ]
+        };
+
+        // Render original PDF (clone bytes to avoid PDF.js interference)
+        console.log('Rendering original PDF...');
+        const originalPdf = await pdfjsLib.getDocument({ data: pdfBytes.slice() }).promise;
+        const originalPage = await originalPdf.getPage(1);
+        const originalViewport = originalPage.getViewport({ scale: 1.5 });
+
+        originalCanvas.height = originalViewport.height;
+        originalCanvas.width = originalViewport.width;
+
+        await originalPage.render({
+          canvasContext: originalCanvas.getContext('2d'),
+          viewport: originalViewport
+        }).promise;
+        console.log('Original PDF rendered');
+
+        // Process the PDF
+        console.log('Calling processDocument...');
+        const modifiedPdfBytes = await processDocument(pdfBytes, rules);
+        console.log('processDocument returned');
+
+        console.log('Modified PDF bytes:', modifiedPdfBytes);
+        console.log('Type:', modifiedPdfBytes.constructor.name);
+        console.log('Length:', modifiedPdfBytes.length);
+        console.log('First bytes:', Array.from(modifiedPdfBytes.slice(0, 10)));
+
+        // Render processed PDF
+        console.log('Rendering processed PDF...');
+        const processedPdf = await pdfjsLib.getDocument({ data: modifiedPdfBytes }).promise;
+        const processedPage = await processedPdf.getPage(1);
+        const processedViewport = processedPage.getViewport({ scale: 1.5 });
+
+        processedCanvas.height = processedViewport.height;
+        processedCanvas.width = processedViewport.width;
+
+        await processedPage.render({
+          canvasContext: processedCanvas.getContext('2d'),
+          viewport: processedViewport
+        }).promise;
+
+        preview.style.display = 'block';
+        output.textContent = '✓ PDF processed successfully!';
+        output.style.display = 'block';
+
+      } catch (error) {
+        output.textContent = '✗ Error: ' + error.message;
+        output.style.display = 'block';
+        console.error(error);
+      } finally {
+        processBtn.disabled = false;
+        processBtn.textContent = 'Process PDF';
+      }
+    });
+  </script>
+</body>
+</html>

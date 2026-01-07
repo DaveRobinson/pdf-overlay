@@ -91,6 +91,64 @@ await processDocumentFile('input.pdf', rules, 'output.pdf', {
 })
 ```
 
+## Key Concepts
+
+### Coordinate System
+
+PDFs use a **bottom-left origin** coordinate system:
+- Position `(0, 0)` is at the **bottom-left corner** of the page
+- X increases to the right
+- Y increases **upward** (not downward like typical screen coordinates)
+
+**Example for A4 page (595 × 842 points):**
+```typescript
+{ x: 50, y: 792 }   // Near top-left
+{ x: 50, y: 50 }    // Near bottom-left
+{ x: 545, y: 792 }  // Near top-right
+{ x: 545, y: 50 }   // Near bottom-right
+```
+
+### Units
+
+All positions and dimensions are in **PDF points** where 1 point = 1/72 inch.
+
+**Common page sizes:**
+- A4: 595 × 842 points (210 × 297 mm)
+- US Letter: 612 × 792 points (8.5 × 11 inches)
+
+### Page Selectors
+
+Target specific pages using page selectors:
+
+```typescript
+{ type: 'all' }                          // All pages
+{ type: 'first' }                        // First page only
+{ type: 'last' }                         // Last page only
+{ type: 'specific', pages: [1, 3, 5] }  // Pages 1, 3, and 5
+{ type: 'range', from: 2, to: 5 }       // Pages 2 through 5
+```
+
+**Negative indexing:** Use negative numbers to count from the end:
+```typescript
+{ type: 'specific', pages: [-1] }       // Last page
+{ type: 'specific', pages: [-2] }       // Second-to-last page
+```
+
+### Rule Structure
+
+Every processing rule requires four fields:
+
+```typescript
+{
+  type: 'text',                    // 'text' or 'image'
+  page: { type: 'first' },         // PageSelector (required)
+  position: { x: 50, y: 750 },     // PositionSelector (required)
+  element: {                        // TextElement or ImageElement (required)
+    content: 'Hello'               // Element-specific properties
+  }
+}
+```
+
 ## Running the Samples
 
 The `samples/` directory contains demonstration scripts:

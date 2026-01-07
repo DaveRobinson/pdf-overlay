@@ -77,15 +77,72 @@ The DocumentRules structure has two main sections:
 - `documentMeta`: Global configuration including font definitions and default text styling
 - `processingRules`: Array of rules to apply (text or image placement)
 
+**Complete Structure Example:**
+
+```typescript
+const rules: DocumentRules = {
+  documentMeta: {
+    fonts: {
+      main: { type: 'standard', family: 'Helvetica' },
+      custom: { type: 'custom', family: 'CustomFont' }
+    },
+    defaults: {
+      fontName: 'main',      // References key in fonts object
+      fontSize: 12,
+      colour: '#000000',
+      lineHeight: 1.2,
+      align: 'left',
+      verticalAlign: 'top'
+    }
+  },
+  processingRules: [
+    {
+      type: 'text',
+      page: { type: 'first' },           // PageSelector (required)
+      position: { x: 50, y: 750 },       // PositionSelector (required)
+      element: {                          // TextElement (required)
+        content: 'Hello',                 // Required
+        fontName: 'main',                 // Optional overrides
+        fontSize: 14,
+        colour: '#FF0000'
+      }
+    },
+    {
+      type: 'image',
+      page: { type: 'all' },
+      position: { x: 100, y: 100 },
+      element: {                          // ImageElement
+        name: 'logo',                     // Required - references resources
+        width: 200,
+        height: 100
+      }
+    }
+  ]
+}
+```
+
+**PageSelector Types (IMPORTANT):**
+
+```typescript
+{ type: 'all' }                          // All pages
+{ type: 'first' }                        // First page only
+{ type: 'last' }                         // Last page only
+{ type: 'specific', pages: [1, 3, 5] }  // Specific page numbers (1-based)
+{ type: 'range', from: 2, to: 5 }       // Page range (inclusive)
+```
+
 **Key Design Patterns:**
+- **Processing rule structure**: Always has `type`, `page`, `position`, and `element` fields
 - **Font definitions**: Explicit type ('standard' or 'custom') with `family` field. Custom fonts must be provided via resources.
-- **Image references**: Images use `name` field that references resources (no inline data or paths)
+- **Font references**: Use `fontName` field (not `font`) to reference keys in `documentMeta.fonts`
+- **Image references**: Images use `name` field in element that references resources (no inline data or paths)
 - **Resources system**: All custom fonts and images are provided separately via `ProcessDocumentOptions.resources`
 - **Security**: File paths resolved via `basePaths` with path traversal protection
-- **PageSelectors**: Support negative indexing (-1 = last page, -2 = second-to-last)
+- **PageSelectors**: Support negative indexing in page numbers (-1 = last page, -2 = second-to-last)
 - **Styling cascades**: element-specific → documentMeta.defaults → undefined
-- **ColourSpec**: Multiple formats: hex strings, RGB, CMYK, greyscale
+- **ColourSpec**: Multiple formats: hex strings ('#FF0000' or '#F00'), RGB objects, CMYK objects, greyscale objects
 - **Dimensions**: All positions/bounds in PDF points (1/72 inch)
+- **Coordinate System**: PDF uses a bottom-left origin. Position (0, 0) is the bottom-left corner of the page, x increases to the right, y increases upward. An A4 page is 595 x 842 points, so position { x: 50, y: 792 } is near the top-left of the page.
 
 ### Utility Modules
 
