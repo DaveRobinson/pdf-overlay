@@ -14,6 +14,7 @@ dist-ssr
 
 # Test outputs
 test-*.pdf
+coverage/
 
 # Editor directories and files
 .vscode/*

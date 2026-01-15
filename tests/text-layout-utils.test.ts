@@ -168,6 +168,16 @@ describe('calculateAlignedX', () => {
       // No width in bounds, so treat as no bounds
       expect(x).toBe(75)
     })
+
+    it('should fall back to baseX for invalid alignment with bounds', () => {
+      const x = calculateAlignedX(100, 'Hello', mockFont, 12, 'invalid' as any, { width: 200 })
+      expect(x).toBe(100)
+    })
+
+    it('should fall back to baseX for invalid alignment without bounds', () => {
+      const x = calculateAlignedX(100, 'Hello', mockFont, 12, 'invalid' as any, undefined)
+      expect(x).toBe(100)
+    })
   })
 
   describe('multiline text', () => {
@@ -238,6 +248,12 @@ describe('calculateAlignedY', () => {
       const y = calculateAlignedY(200, 'Hello', mockFont, 12, 'middle', { width: 50 })
       // No height in bounds, so treat as no bounds
       expect(y).toBe(194)
+    })
+
+    it('should fall back to top alignment for invalid alignment with bounds', () => {
+      const y = calculateAlignedY(200, 'Hello', mockFont, 12, 'invalid' as any, { height: 100 })
+      // Falls through to default (top alignment): baseY - textHeight + descent = 200 - 12 + 0 = 188
+      expect(y).toBe(188)
     })
   })
 

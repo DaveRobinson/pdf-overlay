@@ -1,4 +1,5 @@
 import { PDFDocument, PDFPage, PDFImage, PDFFont, StandardFonts } from 'pdf-lib'
+import fontkit from '@pdf-lib/fontkit'
 import type { DocumentRules, ProcessingRule, DefaultTextStyle, ProcessDocumentOptions } from './types'
 import { parseColour } from './colour-utils'
 import { resolvePageNumbers } from './page-utils'
@@ -27,6 +28,9 @@ export async function processDocument(
 ): Promise<Uint8Array> {
   // Load source PDF
   const pdfDoc = await PDFDocument.load(pdfBytes)
+
+  // Register fontkit for custom font support
+  pdfDoc.registerFontkit(fontkit)
 
   // Apply processing rules
   await applyRules(pdfDoc, rules, options)
