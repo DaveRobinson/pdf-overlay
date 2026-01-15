@@ -12,8 +12,10 @@ dist
 dist-ssr
 *.local
 
-# Test outputs
+# Test and sample outputs
 test-*.pdf
+samples/output/*
+!samples/output/.gitkeep
 coverage/
 
 # Editor directories and files

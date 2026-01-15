@@ -20,6 +20,9 @@ pdf-overlay is a TypeScript library for placing content (text, images) on PDF fi
 ### Schema Generation
 - `npm run generate-schema` - Generate JSON schema from DocumentRules type in src/types.ts
 
+### Samples
+- `npm run samples:generate` - Regenerate base PDFs in samples/base/
+
 ## Architecture
 
 ### Core Processing Flow
@@ -201,10 +204,25 @@ These features are not needed for the library's core use case of placing text an
 
 ## Samples
 
-The `samples/` directory contains demonstration scripts:
-- `text-alignment-demo.ts` - Comprehensive text alignment and bounds demonstration
-- `text-styling-demo.ts` - Font, color, and styling features demonstration
+The `samples/` directory structure:
+- `samples/base/` - Source PDFs with visual guides (committed to repo)
+- `samples/output/` - Generated output PDFs (gitignored)
+- Generator scripts (`generate-*-demo-pdf.ts`) - Create base PDFs
+- Demo scripts (`*-demo.ts`) - Apply rules to demonstrate features
 
-Run samples using tsx: `npx tsx samples/text-alignment-demo.ts`
+**Demo scripts:**
+- `text-alignment-demo.ts` - Horizontal/vertical alignment and text wrapping
+- `text-styling-demo.ts` - Fonts, colors, opacity, and styling options
+- `pagination-demo.ts` - All PageSelector types (all, first, last, specific, range, negative indexing)
 
-**Note:** Samples use the new API with `processDocumentFile` and resources-based asset management.
+**Running samples:**
+```bash
+npx tsx samples/text-alignment-demo.ts    # Output: samples/output/text-alignment.pdf
+npx tsx samples/text-styling-demo.ts      # Output: samples/output/text-styling.pdf
+npx tsx samples/pagination-demo.ts        # Output: samples/output/pagination.pdf
+```
+
+**Regenerating base PDFs:**
+```bash
+npm run samples:generate
+```

@@ -166,8 +166,8 @@ async function testTextStyling() {
     ],
   }
 
-  await processDocumentFile('sample.pdf', rules, 'test-output-text-styling.pdf')
-  console.log('✓ Test PDF created: test-output-text-styling.pdf')
+  await processDocumentFile('samples/base/styling-demo.pdf', rules, 'samples/output/text-styling.pdf')
+  console.log('✓ Output: samples/output/text-styling.pdf')
   console.log('Open the PDF to visually verify all text styling features')
 }
 

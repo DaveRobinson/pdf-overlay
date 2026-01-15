@@ -49,6 +49,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "samples:generate": "npx tsx samples/generate-alignment-demo-pdf.ts && npx tsx samples/generate-styling-demo-pdf.ts && npx tsx samples/generate-pagination-demo-pdf.ts",
     "prepublishOnly": "npm run test:run && npm run build"
   },
   "devDependencies": {

@@ -155,12 +155,20 @@ The `samples/` directory contains demonstration scripts:
 
 - `text-alignment-demo.ts` - Demonstrates text alignment and bounds
 - `text-styling-demo.ts` - Demonstrates fonts, colors, and styling
+- `pagination-demo.ts` - Demonstrates all PageSelector types
 
 Run samples with [tsx](https://github.com/privatenumber/tsx):
 
 ```bash
-npx tsx samples/text-alignment-demo.ts
-npx tsx samples/text-styling-demo.ts
+npx tsx samples/text-alignment-demo.ts    # Output: samples/output/text-alignment.pdf
+npx tsx samples/text-styling-demo.ts      # Output: samples/output/text-styling.pdf
+npx tsx samples/pagination-demo.ts        # Output: samples/output/pagination.pdf
+```
+
+To regenerate the base PDFs (in `samples/base/`):
+
+```bash
+npm run samples:generate
 ```
 
 ## Features

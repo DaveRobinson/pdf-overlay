@@ -95,11 +95,14 @@ export function calculateAlignedX(
 
   if (bounds?.width !== undefined) {
     // With bounds: align within the bounding box
+    // When text is wider than bounds, it will wrap - use the lesser of textWidth and bounds.width
+    // for alignment calculations since wrapped text fills up to bounds.width
+    const effectiveWidth = Math.min(textWidth, bounds.width)
     switch (align) {
       case 'center':
-        return baseX + (bounds.width / 2) - (textWidth / 2)
+        return baseX + (bounds.width / 2) - (effectiveWidth / 2)
       case 'right':
-        return baseX + bounds.width - textWidth
+        return baseX + bounds.width - effectiveWidth
       default:
         return baseX
     }

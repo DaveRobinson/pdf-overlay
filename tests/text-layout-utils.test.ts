@@ -156,11 +156,20 @@ describe('calculateAlignedX', () => {
       expect(x).toBe(250)
     })
 
-    it('should handle text wider than bounds', () => {
+    it('should handle text wider than bounds (center) - uses bounds width for alignment', () => {
       const x = calculateAlignedX(100, 'Very long text here', mockFont, 12, 'center', { width: 50 })
       // text width = 190, bounds width = 50
-      // center calculation: 100 + 25 - 95 = 30
-      expect(x).toBe(30)
+      // effectiveWidth = min(190, 50) = 50 (text will wrap to fill bounds)
+      // center calculation: 100 + 25 - 25 = 100
+      expect(x).toBe(100)
+    })
+
+    it('should handle text wider than bounds (right) - uses bounds width for alignment', () => {
+      const x = calculateAlignedX(100, 'Very long text here', mockFont, 12, 'right', { width: 50 })
+      // text width = 190, bounds width = 50
+      // effectiveWidth = min(190, 50) = 50 (text will wrap to fill bounds)
+      // right calculation: 100 + 50 - 50 = 100
+      expect(x).toBe(100)
     })
 
     it('should ignore bounds.height when calculating x', () => {

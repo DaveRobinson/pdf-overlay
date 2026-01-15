@@ -320,65 +320,65 @@ async function testTextAlignment() {
         page: { type: 'first' },
       },
 
-      // Section 5: Text Wrapping with Bounds
+      // Section 5: Text Wrapping with Bounds (on page 2)
       {
         type: 'text',
         label: 'Section 5 header',
-        position: { x: 50, y: 150 },
+        position: { x: 50, y: 730 },
         element: {
           content: 'Section 5: Text Wrapping (150pt wide box)',
           fontName: 'bold',
           fontSize: 12,
         },
-        page: { type: 'first' },
+        page: { type: 'specific', pages: [2] },
       },
 
       // Wrapped text - left aligned
       {
         type: 'text',
         label: 'Wrapping: Left aligned',
-        position: { x: 50, y: 130 },
+        position: { x: 50, y: 710 },
         element: {
-          content: 'This is a longer piece of text that will wrap within the bounds when it exceeds the specified width.',
+          content: 'LEFT: This text demonstrates left-aligned wrapping within a bounded width.',
           bounds: { width: 150 },
           align: 'left',
           lineHeight: 14,
         },
-        page: { type: 'first' },
+        page: { type: 'specific', pages: [2] },
       },
 
       // Wrapped text - center aligned
       {
         type: 'text',
         label: 'Wrapping: Center aligned',
-        position: { x: 220, y: 130 },
+        position: { x: 220, y: 710 },
         element: {
-          content: 'This is a longer piece of text that will wrap within the bounds when it exceeds the specified width.',
+          content: 'CENTER: This text demonstrates center-aligned wrapping within a bounded width.',
           bounds: { width: 150 },
           align: 'center',
           lineHeight: 14,
         },
-        page: { type: 'first' },
+        page: { type: 'specific', pages: [2] },
       },
 
       // Wrapped text - right aligned
       {
         type: 'text',
         label: 'Wrapping: Right aligned',
-        position: { x: 390, y: 130 },
+        position: { x: 390, y: 710 },
         element: {
-          content: 'This is a longer piece of text that will wrap within the bounds when it exceeds the specified width.',
+          content: 'RIGHT: This text demonstrates right-aligned wrapping within a bounded width.',
           bounds: { width: 150 },
           align: 'right',
           lineHeight: 14,
         },
-        page: { type: 'first' },
+        page: { type: 'specific', pages: [2] },
       },
     ],
   }
 
-  await processDocumentFile('sample.pdf', rules, 'test-output-text-alignment.pdf')
-  console.log('✓ Test PDF created: test-output-text-alignment.pdf')
+  await processDocumentFile('samples/base/alignment-demo.pdf', rules, 'samples/output/text-alignment.pdf')
+  console.log('✓ Output: samples/output/text-alignment.pdf')
   console.log('Open the PDF to visually verify all text alignment features')
 }
 
