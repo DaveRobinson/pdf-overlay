@@ -5,6 +5,9 @@
   "author": "Dave Robinson",
   "type": "module",
   "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "./dist/pdf-overlay.cjs",
   "module": "./dist/pdf-overlay.js",
   "types": "./dist/index.d.ts",
