@@ -1,6 +1,6 @@
 {
   "name": "@dave_robinson/pdf-overlay",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "TypeScript library for placing content (text, images) on PDF files using a declarative rules-based system",
   "author": "Dave Robinson",
   "type": "module",
