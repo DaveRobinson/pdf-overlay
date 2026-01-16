@@ -2,6 +2,12 @@
 
 This library provides a way to add content to a PDF file by applying a structured set of rules.
 
+## Installation
+
+```bash
+npm install @dave_robinson/pdf-overlay
+```
+
 ## Usage
 
 ### Node.js (File-based)
