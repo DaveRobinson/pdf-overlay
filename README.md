@@ -13,8 +13,8 @@ npm install @dave_robinson/pdf-overlay
 ### Node.js (File-based)
 
 ```typescript
-import { processDocumentFile } from 'pdf-overlay'
-import type { DocumentRules } from 'pdf-overlay'
+import { processDocumentFile } from '@dave_robinson/pdf-overlay'
+import type { DocumentRules } from '@dave_robinson/pdf-overlay'
 
 const rules: DocumentRules = {
   documentMeta: {
@@ -54,7 +54,7 @@ await processDocumentFile('input.pdf', rules, 'output.pdf')
 ### Browser (Bytes-based)
 
 ```typescript
-import { processDocument } from 'pdf-overlay'
+import { processDocument } from '@dave_robinson/pdf-overlay'
 
 const pdfBytes = new Uint8Array(await pdfFile.arrayBuffer())
 const processedBytes = await processDocument(pdfBytes, rules)
@@ -67,7 +67,7 @@ document.getElementById('preview').src = URL.createObjectURL(blob)
 ### With Custom Fonts and Images
 
 ```typescript
-import { processDocumentFile } from 'pdf-overlay'
+import { processDocumentFile } from '@dave_robinson/pdf-overlay'
 
 const rules = {
   documentMeta: {
